@@ -1,0 +1,77 @@
+name: caresphere
+
+services:
+
+  # ─── PostgreSQL for Auth Service ────────────────────────────────
+  auth-db:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - caresphere-network
+
+  # ─── Kafka (KRaft mode — no Zookeeper) ─────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft settings
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # Listeners
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # Cluster
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      # Log dirs
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+    volumes:
+      - kafka-data:/tmp/kraft-combined-logs
+    networks:
+      - caresphere-network
+
+  # ─── Auth Service ──────────────────────────────────────────────
+  auth-service:
+    build:
+      context: ../auth-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - auth-db
+      - kafka
+    networks:
+      - caresphere-network
+
+volumes:
+  auth-db-data:
+  kafka-data:
+
+networks:
+  caresphere-network:
+    driver: bridge

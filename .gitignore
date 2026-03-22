@@ -1,0 +1,53 @@
+# ─── Build Output ─────────────────────────────────────────────
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ─── Maven ────────────────────────────────────────────────────
+.mvn/
+mvnw
+mvnw.cmd
+HELP.md
+
+# ─── IDE — IntelliJ IDEA ─────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ─── IDE — Eclipse / STS ─────────────────────────────────────
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# ─── IDE — NetBeans ───────────────────────────────────────────
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ─── IDE — VS Code ───────────────────────────────────────────
+.vscode/
+
+# ─── OS Files ─────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Logs ─────────────────────────────────────────────────────
+*.log
+
+# ─── Docker ───────────────────────────────────────────────────
+**/docker-compose.override.yml
+
+# ─── Environment / Secrets ────────────────────────────────────
+.env
+*.env.local
