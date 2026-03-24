@@ -42,10 +42,10 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
 
-      # Log dirs
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      # Log dirs (Using container-local path instead of /tmp which causes permission issues)
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
     volumes:
-      - kafka-data:/tmp/kraft-combined-logs
+      - kafka-data:/var/lib/kafka/data
     networks:
       - caresphere-network
 
@@ -68,9 +68,44 @@ services:
     networks:
       - caresphere-network
 
+  # ─── PostgreSQL for Profile Service ──────────────────────────
+  profile-db:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: profile_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - profile-db-data:/var/lib/postgresql/data
+    networks:
+      - caresphere-network
+
+  # ─── Profile Service ─────────────────────────────────────────
+  profile-service:
+    build:
+      context: ../profile-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://profile-db:5432/profile_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - profile-db
+      - kafka
+    networks:
+      - caresphere-network
+
 volumes:
   auth-db-data:
   kafka-data:
+  profile-db-data:
 
 networks:
   caresphere-network:
