@@ -102,10 +102,45 @@ services:
     networks:
       - caresphere-network
 
+  # ─── PostgreSQL for Appointment Service ────────────────────────
+  appointment-db:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: appointment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - appointment-db-data:/var/lib/postgresql/data
+    networks:
+      - caresphere-network
+
+  # ─── Appointment Service ───────────────────────────────────────
+  appointment-service:
+    build:
+      context: ../appointment-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://appointment-db:5432/appointment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - appointment-db
+      - kafka
+    networks:
+      - caresphere-network
+
 volumes:
   auth-db-data:
   kafka-data:
   profile-db-data:
+  appointment-db-data:
 
 networks:
   caresphere-network:
