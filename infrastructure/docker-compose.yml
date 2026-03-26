@@ -136,11 +136,46 @@ services:
     networks:
       - caresphere-network
 
+  # ─── PostgreSQL for Consultation Service ──────────────────────
+  consultation-db:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: consultation_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - consultation-db-data:/var/lib/postgresql/data
+    networks:
+      - caresphere-network
+
+  # ─── Consultation Service ─────────────────────────────────────
+  consultation-service:
+    build:
+      context: ../consultation-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://consultation-db:5432/consultation_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - consultation-db
+      - kafka
+    networks:
+      - caresphere-network
+
 volumes:
   auth-db-data:
   kafka-data:
   profile-db-data:
   appointment-db-data:
+  consultation-db-data:
 
 networks:
   caresphere-network:
