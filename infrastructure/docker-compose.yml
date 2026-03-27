@@ -170,12 +170,47 @@ services:
     networks:
       - caresphere-network
 
+  # ─── PostgreSQL for Records Service ────────────────────────────
+  records-db:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: records_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - records-db-data:/var/lib/postgresql/data
+    networks:
+      - caresphere-network
+
+  # ─── Records Service ───────────────────────────────────────────
+  records-service:
+    build:
+      context: ../records-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://records-db:5432/records_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - records-db
+      - kafka
+    networks:
+      - caresphere-network
+
 volumes:
   auth-db-data:
   kafka-data:
   profile-db-data:
   appointment-db-data:
   consultation-db-data:
+  records-db-data:
 
 networks:
   caresphere-network:
