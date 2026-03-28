@@ -204,6 +204,40 @@ services:
     networks:
       - caresphere-network
 
+  # ─── PostgreSQL for Pharmacy Service ─────────────────────────────
+  pharmacy-db:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_DB: pharmacy_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pharmacy-db-data:/var/lib/postgresql/data
+    networks:
+      - caresphere-network
+
+  # ─── Pharmacy Service ──────────────────────────────────────────
+  pharmacy-service:
+    build:
+      context: ../pharmacy-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pharmacy-db:5432/pharmacy_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - pharmacy-db
+      - kafka
+    networks:
+      - caresphere-network
+
 volumes:
   auth-db-data:
   kafka-data:
@@ -211,6 +245,7 @@ volumes:
   appointment-db-data:
   consultation-db-data:
   records-db-data:
+  pharmacy-db-data:
 
 networks:
   caresphere-network:
