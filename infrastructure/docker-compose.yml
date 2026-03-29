@@ -238,6 +238,38 @@ services:
     networks:
       - caresphere-network
 
+  # ─── PostgreSQL for Content Service ──────────────────────────────
+  content-db:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5438:5432"
+    environment:
+      POSTGRES_DB: content_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - content-db-data:/var/lib/postgresql/data
+    networks:
+      - caresphere-network
+
+  # ─── Content Service ────────────────────────────────────────────
+  content-service:
+    build:
+      context: ../content-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://content-db:5432/content_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      - content-db
+    networks:
+      - caresphere-network
+
 volumes:
   auth-db-data:
   kafka-data:
@@ -246,6 +278,7 @@ volumes:
   consultation-db-data:
   records-db-data:
   pharmacy-db-data:
+  content-db-data:
 
 networks:
   caresphere-network:
