@@ -270,6 +270,27 @@ services:
     networks:
       - caresphere-network
 
+  # ─── API Gateway ──────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - auth-service
+      - profile-service
+      - appointment-service
+      - consultation-service
+      - records-service
+      - pharmacy-service
+      - content-service
+    networks:
+      - caresphere-network
+
 volumes:
   auth-db-data:
   kafka-data:
