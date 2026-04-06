@@ -1,0 +1,57 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      routes:
+        # ─── Auth Service ──────────────────────────────────────────
+        - id: auth-service
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/api/auth/**
+
+        # ─── Profile Service ──────────────────────────────────────
+        - id: profile-service
+          uri: http://profile-service:8082
+          predicates:
+            - Path=/api/profiles/**
+
+        # ─── Appointment Service ──────────────────────────────────
+        - id: appointment-service
+          uri: http://appointment-service:8083
+          predicates:
+            - Path=/api/appointments/**
+
+        # ─── Consultation Service ─────────────────────────────────
+        - id: consultation-service
+          uri: http://consultation-service:8084
+          predicates:
+            - Path=/api/consultations/**
+
+        # ─── Records Service ──────────────────────────────────────
+        - id: records-service
+          uri: http://records-service:8085
+          predicates:
+            - Path=/api/records/**
+
+        # ─── Pharmacy Service ─────────────────────────────────────
+        - id: pharmacy-service
+          uri: http://pharmacy-service:8086
+          predicates:
+            - Path=/api/pharmacy/**
+
+        # ─── Content Service ──────────────────────────────────────
+        - id: content-service
+          uri: http://content-service:8087
+          predicates:
+            - Path=/api/content/**
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+jwt:
+  secret: caresphere-auth-service-jwt-secret-key-must-be-at-least-256-bits-long-for-hmac-sha256
