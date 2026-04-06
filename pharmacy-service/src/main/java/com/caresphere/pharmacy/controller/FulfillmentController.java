@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
+@RequestMapping("/api/pharmacy")
 @RequiredArgsConstructor
 public class FulfillmentController {
 
