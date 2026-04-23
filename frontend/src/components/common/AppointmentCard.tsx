@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "./StatusBadge";
 import type { AppointmentResponse } from "@/types";
+import { useUserNames, getDisplayName } from "@/hooks/useUserNames";
 import { Calendar, Clock, Loader2 } from "lucide-react";
 
 interface AppointmentCardProps {
@@ -26,6 +27,8 @@ export function AppointmentCard({
   otherPartyId,
   actions,
 }: AppointmentCardProps) {
+  const namesMap = useUserNames(otherPartyId ? [otherPartyId] : []);
+
   const startDate = new Date(appointment.startTime);
   const endDate = new Date(appointment.endTime);
 
@@ -62,7 +65,7 @@ export function AppointmentCard({
             {otherPartyId && (
               <p className="text-sm text-foreground">
                 <span className="text-muted-foreground">{otherPartyLabel}:</span>{" "}
-                <span className="font-medium">{otherPartyId.slice(0, 8)}...</span>
+                <span className="font-medium">{getDisplayName(namesMap, otherPartyId)}</span>
               </p>
             )}
           </div>

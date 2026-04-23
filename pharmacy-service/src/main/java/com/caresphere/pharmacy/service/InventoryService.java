@@ -17,87 +17,96 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class InventoryService {
 
-    private final MedicineRepository medicineRepository;
-    private final ChemistInventoryRepository inventoryRepository;
-    private final PharmacyEventProducer eventProducer;
+        private final MedicineRepository medicineRepository;
+        private final ChemistInventoryRepository inventoryRepository;
+        private final PharmacyEventProducer eventProducer;
 
-    @Transactional
-    public InventoryResponse addInventory(AddInventoryRequest request) {
-        String normalizedName = request.getMedicineName().trim().toLowerCase();
+        @Transactional
+        public InventoryResponse addInventory(AddInventoryRequest request) {
+                String normalizedName = request.getMedicineName().trim().toLowerCase();
 
-        Medicine medicine = medicineRepository.findByName(normalizedName)
-                .orElseGet(() -> {
-                    Medicine newMedicine = Medicine.builder()
-                            .name(normalizedName)
-                            .build();
-                    return medicineRepository.save(newMedicine);
-                });
+                Medicine medicine = medicineRepository.findByName(normalizedName)
+                                .orElseGet(() -> {
+                                        Medicine newMedicine = Medicine.builder()
+                                                        .name(normalizedName)
+                                                        .build();
+                                        return medicineRepository.save(newMedicine);
+                                });
 
-        ChemistInventory inventory = inventoryRepository
-                .findByChemistIdAndMedicine(request.getChemistId(), medicine)
-                .map(existing -> {
-                    existing.setQuantity(existing.getQuantity() + request.getQuantity());
-                    return existing;
-                })
-                .orElseGet(() -> ChemistInventory.builder()
-                        .chemistId(request.getChemistId())
-                        .medicine(medicine)
-                        .quantity(request.getQuantity())
-                        .build());
+                ChemistInventory inventory = inventoryRepository
+                                .findByChemistIdAndMedicine(request.getChemistId(), medicine)
+                                .map(existing -> {
+                                        existing.setQuantity(existing.getQuantity() + request.getQuantity());
+                                        return existing;
+                                })
+                                .orElseGet(() -> ChemistInventory.builder()
+                                                .chemistId(request.getChemistId())
+                                                .medicine(medicine)
+                                                .quantity(request.getQuantity())
+                                                .build());
 
-        ChemistInventory saved = inventoryRepository.save(inventory);
-        log.info("Inventory updated: chemistId={}, medicine={}, quantity={}",
-                saved.getChemistId(), medicine.getName(), saved.getQuantity());
+                ChemistInventory saved = inventoryRepository.save(inventory);
+                log.info("Inventory updated: chemistId={}, medicine={}, quantity={}",
+                                saved.getChemistId(), medicine.getName(), saved.getQuantity());
 
-        publishStockEvent(saved);
+                publishStockEvent(saved);
 
-        return InventoryResponse.fromEntity(saved);
-    }
+                return InventoryResponse.fromEntity(saved);
+        }
 
-    @Transactional
-    public InventoryResponse updateInventory(UpdateInventoryRequest request) {
-        String normalizedName = request.getMedicineName().trim().toLowerCase();
+        @Transactional
+        public InventoryResponse updateInventory(UpdateInventoryRequest request) {
+                String normalizedName = request.getMedicineName().trim().toLowerCase();
 
-        Medicine medicine = medicineRepository.findByName(normalizedName)
-                .orElseThrow(() -> new MedicineNotFoundException(
-                        "Medicine not found: " + request.getMedicineName()));
+                Medicine medicine = medicineRepository.findByName(normalizedName)
+                                .orElseThrow(() -> new MedicineNotFoundException(
+                                                "Medicine not found: " + request.getMedicineName()));
 
-        ChemistInventory inventory = inventoryRepository
-                .findByChemistIdAndMedicine(request.getChemistId(), medicine)
-                .orElseThrow(() -> new InventoryNotFoundException(
-                        "Inventory not found for chemistId=" + request.getChemistId()
-                                + " and medicine=" + normalizedName));
+                ChemistInventory inventory = inventoryRepository
+                                .findByChemistIdAndMedicine(request.getChemistId(), medicine)
+                                .orElseThrow(() -> new InventoryNotFoundException(
+                                                "Inventory not found for chemistId=" + request.getChemistId()
+                                                                + " and medicine=" + normalizedName));
 
-        inventory.setQuantity(request.getQuantity());
-        ChemistInventory saved = inventoryRepository.save(inventory);
-        log.info("Stock updated: chemistId={}, medicine={}, newQuantity={}",
-                saved.getChemistId(), medicine.getName(), saved.getQuantity());
+                inventory.setQuantity(request.getQuantity());
+                ChemistInventory saved = inventoryRepository.save(inventory);
+                log.info("Stock updated: chemistId={}, medicine={}, newQuantity={}",
+                                saved.getChemistId(), medicine.getName(), saved.getQuantity());
 
-        publishStockEvent(saved);
+                publishStockEvent(saved);
 
-        return InventoryResponse.fromEntity(saved);
-    }
+                return InventoryResponse.fromEntity(saved);
+        }
 
-    @Transactional(readOnly = true)
-    public List<InventoryResponse> checkAvailability(String medicineName) {
-        String normalizedName = medicineName.trim().toLowerCase();
-        List<ChemistInventory> inventories = inventoryRepository.findAllByMedicineName(normalizedName);
-        return inventories.stream()
-                .map(InventoryResponse::fromEntity)
-                .toList();
-    }
+        @Transactional(readOnly = true)
+        public List<InventoryResponse> checkAvailability(String medicineName) {
+                String normalizedName = medicineName.trim().toLowerCase();
+                List<ChemistInventory> inventories = inventoryRepository.findAllByMedicineName(normalizedName);
+                return inventories.stream()
+                                .map(InventoryResponse::fromEntity)
+                                .toList();
+        }
 
-    private void publishStockEvent(ChemistInventory inventory) {
-        PharmacyEvent event = PharmacyEvent.builder()
-                .chemistId(inventory.getChemistId().toString())
-                .status("STOCK_UPDATED")
-                .build();
-        eventProducer.publishStockUpdated(event);
-    }
+        @Transactional(readOnly = true)
+        public List<InventoryResponse> getInventoryByChemistId(UUID chemistId) {
+                List<ChemistInventory> inventories = inventoryRepository.findByChemistId(chemistId);
+                return inventories.stream()
+                                .map(InventoryResponse::fromEntity)
+                                .toList();
+        }
+
+        private void publishStockEvent(ChemistInventory inventory) {
+                PharmacyEvent event = PharmacyEvent.builder()
+                                .chemistId(inventory.getChemistId().toString())
+                                .status("STOCK_UPDATED")
+                                .build();
+                eventProducer.publishStockUpdated(event);
+        }
 }

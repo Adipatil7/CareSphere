@@ -155,6 +155,26 @@ export interface InventoryResponse {
   lastUpdated: string;
 }
 
+export interface AddInventoryRequest {
+  chemistId: string;
+  medicineName: string;
+  quantity: number;
+}
+
+export interface UpdateInventoryRequest {
+  chemistId: string;
+  medicineName: string;
+  quantity: number;
+}
+
+export interface FulfillmentResponse {
+  id: string;
+  prescriptionId: string;
+  chemistId: string;
+  status: string;
+  updatedAt: string;
+}
+
 // ── Content ──
 export interface Post {
   id: string;

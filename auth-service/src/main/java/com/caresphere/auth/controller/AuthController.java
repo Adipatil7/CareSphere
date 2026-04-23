@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -41,5 +43,20 @@ public class AuthController {
     public ResponseEntity<UserResponse> verifyUser(@Valid @RequestBody VerifyRequest request) {
         UserResponse response = authService.verifyUser(request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/users/{id}")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
+        UserResponse response = authService.getUserById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/users/batch")
+    public ResponseEntity<List<UserResponse>> getUsersBatch(@RequestBody List<String> ids) {
+        List<UUID> uuids = ids.stream()
+                .map(UUID::fromString)
+                .collect(Collectors.toList());
+        List<UserResponse> responses = authService.getUsersByIds(uuids);
+        return ResponseEntity.ok(responses);
     }
 }

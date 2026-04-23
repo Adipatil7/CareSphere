@@ -13,7 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +66,19 @@ public class AuthService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
         return toUserResponse(user);
+    }
+
+    public UserResponse getUserById(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        return toUserResponse(user);
+    }
+
+    public List<UserResponse> getUsersByIds(List<UUID> ids) {
+        List<User> users = userRepository.findAllByIdIn(ids);
+        return users.stream()
+                .map(this::toUserResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional

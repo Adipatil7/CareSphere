@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import type { Post, Comment } from "@/types";
+import { useUserNames, getDisplayName, getInitials } from "@/hooks/useUserNames";
 import { ThumbsUp, HeartHandshake, MessageCircle, Send, Loader2 } from "lucide-react";
 
 interface PostCardProps {
@@ -21,6 +22,17 @@ export function PostCard({ post, currentUserId, onReact, onComment }: PostCardPr
   const [commentText, setCommentText] = useState("");
   const [isReacting, setIsReacting] = useState<string | null>(null);
   const [isCommenting, setIsCommenting] = useState(false);
+
+  // Collect all user IDs from post author + comment authors
+  const allUserIds = useMemo(() => {
+    const ids = [post.authorId];
+    if (post.comments) {
+      post.comments.forEach((c) => ids.push(c.userId));
+    }
+    return ids;
+  }, [post.authorId, post.comments]);
+
+  const namesMap = useUserNames(allUserIds);
 
   const likeCount = post.reactions?.filter((r) => r.reactionType === "LIKE").length ?? 0;
   const helpfulCount = post.reactions?.filter((r) => r.reactionType === "HELPFUL").length ?? 0;
@@ -53,11 +65,11 @@ export function PostCard({ post, currentUserId, onReact, onComment }: PostCardPr
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-semibold text-blue-700">
-              {post.authorId.slice(0, 2).toUpperCase()}
+              {getInitials(namesMap, post.authorId)}
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">
-                {post.authorId.slice(0, 8)}...
+                {getDisplayName(namesMap, post.authorId)}
               </p>
               <p className="text-xs text-muted-foreground">
                 {new Date(post.createdAt).toLocaleDateString("en-US", {
@@ -126,10 +138,10 @@ export function PostCard({ post, currentUserId, onReact, onComment }: PostCardPr
                 {post.comments.map((c: Comment) => (
                   <div key={c.id} className="flex gap-2">
                     <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-semibold text-slate-500 shrink-0 mt-0.5">
-                      {c.userId.slice(0, 2).toUpperCase()}
+                      {getInitials(namesMap, c.userId)}
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-foreground">{c.userId.slice(0, 8)}...</p>
+                      <p className="text-xs font-medium text-foreground">{getDisplayName(namesMap, c.userId)}</p>
                       <p className="text-sm text-muted-foreground">{c.text}</p>
                     </div>
                   </div>

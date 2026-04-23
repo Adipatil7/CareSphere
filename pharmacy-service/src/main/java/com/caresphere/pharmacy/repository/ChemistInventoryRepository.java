@@ -14,6 +14,8 @@ public interface ChemistInventoryRepository extends JpaRepository<ChemistInvento
 
     Optional<ChemistInventory> findByChemistIdAndMedicine(UUID chemistId, Medicine medicine);
 
+    List<ChemistInventory> findByChemistId(UUID chemistId);
+
     @Query("SELECT ci FROM ChemistInventory ci JOIN ci.medicine m WHERE LOWER(m.name) = LOWER(:medicineName)")
     List<ChemistInventory> findAllByMedicineName(@Param("medicineName") String medicineName);
 }

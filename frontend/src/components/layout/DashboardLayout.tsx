@@ -11,6 +11,8 @@ import {
   FileText,
   Pill,
   Users,
+  Package,
+  ClipboardCheck,
 } from "lucide-react";
 import type { Role } from "@/types";
 
@@ -30,6 +32,12 @@ const DOCTOR_NAV: NavItem[] = [
   { icon: Users, label: "Community", href: "/doctor/community" },
 ];
 
+const CHEMIST_NAV: NavItem[] = [
+  { icon: LayoutDashboard, label: "Dashboard", href: "/chemist/dashboard" },
+  { icon: Package, label: "Inventory", href: "/chemist/inventory" },
+  { icon: ClipboardCheck, label: "Prescriptions", href: "/chemist/fulfill" },
+];
+
 interface DashboardLayoutProps {
   role: Role;
   children: React.ReactNode;
@@ -37,7 +45,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ role, children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navItems = role === "DOCTOR" ? DOCTOR_NAV : PATIENT_NAV;
+  const navItems = role === "DOCTOR" ? DOCTOR_NAV : role === "CHEMIST" ? CHEMIST_NAV : PATIENT_NAV;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

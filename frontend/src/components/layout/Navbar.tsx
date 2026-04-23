@@ -34,6 +34,8 @@ export function Navbar({ onMenuToggle }: NavbarProps) {
   const roleBadgeColor =
     user?.role === "DOCTOR"
       ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+      : user?.role === "CHEMIST"
+      ? "bg-violet-100 text-violet-700 border-violet-200"
       : "bg-blue-100 text-blue-700 border-blue-200";
 
   return (

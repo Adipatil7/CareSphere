@@ -19,7 +19,7 @@ public class ConsultSession {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "appointment_id", nullable = false, unique = true)
+    @Column(name = "appointment_id", nullable = false)
     private UUID appointmentId;
 
     @Column(name = "room_id", nullable = false, unique = true)

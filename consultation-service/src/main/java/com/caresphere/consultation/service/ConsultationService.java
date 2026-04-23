@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -24,14 +26,23 @@ public class ConsultationService {
     private final ConsultSessionRepository sessionRepository;
     private final ConsultEventProducer eventProducer;
 
+    private static final List<SessionStatus> ACTIVE_STATUSES =
+            List.of(SessionStatus.CREATED, SessionStatus.ACTIVE);
+
     @Transactional
     public ConsultSessionResponse startConsultation(StartConsultRequest request) {
-        // Enforce only one session per appointment
-        if (sessionRepository.existsByAppointmentId(request.getAppointmentId())) {
-            throw new DuplicateSessionException(
-                    "A consultation session already exists for appointmentId: " + request.getAppointmentId());
+        // Only look for sessions that are still active (CREATED or ACTIVE), not ENDED ones
+        Optional<ConsultSession> existingSession = sessionRepository
+                .findByAppointmentIdAndStatusIn(request.getAppointmentId(), ACTIVE_STATUSES);
+
+        if (existingSession.isPresent()) {
+            ConsultSession session = existingSession.get();
+            log.info("Returning existing active consultation session roomId={} for appointmentId={}",
+                    session.getRoomId(), session.getAppointmentId());
+            return ConsultSessionResponse.fromEntity(session);
         }
 
+        // Create a new session (even if an ENDED one exists for the same appointment)
         ConsultSession session = ConsultSession.builder()
                 .appointmentId(request.getAppointmentId())
                 .roomId(UUID.randomUUID().toString())

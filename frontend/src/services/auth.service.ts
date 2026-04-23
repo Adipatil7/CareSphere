@@ -16,4 +16,15 @@ export const authService = {
     const res = await api.get<UserResponse>('/api/auth/me');
     return res.data;
   },
+
+  async getUserById(id: string): Promise<UserResponse> {
+    const res = await api.get<UserResponse>(`/api/auth/users/${id}`);
+    return res.data;
+  },
+
+  async getUsersBatch(ids: string[]): Promise<UserResponse[]> {
+    if (ids.length === 0) return [];
+    const res = await api.post<UserResponse[]>('/api/auth/users/batch', ids);
+    return res.data;
+  },
 };

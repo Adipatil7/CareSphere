@@ -55,6 +55,8 @@ export function getRoleDashboardPath(role: Role): string {
       return '/patient/dashboard';
     case 'DOCTOR':
       return '/doctor/dashboard';
+    case 'CHEMIST':
+      return '/chemist/dashboard';
     default:
       return '/login';
   }

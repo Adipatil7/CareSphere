@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/pharmacy")
@@ -31,6 +32,13 @@ public class InventoryController {
             @Valid @RequestBody UpdateInventoryRequest request) {
         InventoryResponse response = inventoryService.updateInventory(request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/inventory/chemist/{chemistId}")
+    public ResponseEntity<List<InventoryResponse>> getChemistInventory(
+            @PathVariable UUID chemistId) {
+        List<InventoryResponse> responses = inventoryService.getInventoryByChemistId(chemistId);
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/inventory/{medicineName}")

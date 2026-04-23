@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { DoctorSearchResponse } from "@/types";
+import { useUserNames, getDisplayName } from "@/hooks/useUserNames";
 import { Stethoscope, Award } from "lucide-react";
 
 interface DoctorCardProps {
@@ -12,6 +13,8 @@ interface DoctorCardProps {
 }
 
 export function DoctorCard({ doctor, onBook }: DoctorCardProps) {
+  const namesMap = useUserNames([doctor.userId]);
+
   return (
     <Card className="border border-border shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-5">
@@ -21,7 +24,7 @@ export function DoctorCard({ doctor, onBook }: DoctorCardProps) {
           </div>
           <div className="space-y-1.5 min-w-0 flex-1">
             <p className="font-semibold text-foreground truncate">
-              Dr. {doctor.userId.slice(0, 8)}...
+              {getDisplayName(namesMap, doctor.userId, "Dr.")}
             </p>
             <Badge
               variant="outline"

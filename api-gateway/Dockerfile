@@ -2,9 +2,12 @@
 FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
 COPY src ./src
-RUN mvn clean package -DskipTests -B
+RUN for i in 1 2 3 4 5; do \
+      echo "=== Build attempt $i ===" && \
+      mvn clean package -DskipTests -B && break || \
+      echo "=== Attempt $i failed, retrying in 10s ===" && sleep 10; \
+    done
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
